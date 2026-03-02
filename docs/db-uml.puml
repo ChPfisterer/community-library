@@ -1,0 +1,201 @@
+@startuml
+' Database UML (tables as classes). Keys are marked with {PK} and {FK}.
+
+class editions {
+  {PK} isbn13: varchar(13)
+  title: text
+  authors: text[]
+  publisher: text
+  publish_date: date
+  page_count: int
+  language_code: varchar(16)
+  cover_url: text
+  sourced_from: text
+  created_at: timestamptz
+}
+
+class edition_snapshots {
+  {PK} id: uuid
+  {FK} isbn13: varchar(13)
+  fields: jsonb
+  source: text
+  created_at: timestamptz
+}
+
+class book_copies {
+  {PK} id: uuid
+  owner_user_id: uuid
+  {FK} isbn13: varchar(13)
+  status: text
+  shareable: boolean
+  created_at: timestamptz
+}
+
+class qr_labels {
+  {PK} (book_copy_id, version)
+  {FK} book_copy_id: uuid
+  version: int
+  kid: text
+  signature: text
+  active: boolean
+  created_at: timestamptz
+}
+
+class short_codes {
+  {PK} code: varchar(13)
+  {FK} book_copy_id: uuid
+  qr_version: int
+  checksum: char(1)
+  active: boolean
+  created_at: timestamptz
+}
+
+class loans {
+  {PK} id: uuid
+  {FK} book_copy_id: uuid
+  owner_user_id: uuid
+  borrower_user_id: uuid
+  state: text
+  due_at: timestamptz
+  created_at: timestamptz
+  updated_at: timestamptz
+}
+
+class loan_events {
+  {PK} id: uuid
+  {FK} loan_id: uuid
+  type: text
+  method: text
+  actor_user_id: uuid
+  metadata: jsonb
+  created_at: timestamptz
+}
+
+class threads {
+  {PK} id: uuid
+  user_a_id: uuid
+  user_b_id: uuid
+  created_at: timestamptz
+}
+
+class messages {
+  {PK} id: uuid
+  {FK} thread_id: uuid
+  from_user_id: uuid
+  body: text
+  edited_at: timestamptz
+  deleted_for_sender: boolean
+  deleted_for_recipient: boolean
+  read_at: timestamptz
+  created_at: timestamptz
+}
+
+class shelves {
+  {PK} id: uuid
+  user_id: uuid
+  name: text
+  created_at: timestamptz
+}
+
+class shelf_items {
+  {PK} (shelf_id, isbn13/book_copy_id)
+  {FK} shelf_id: uuid
+  isbn13: varchar(13)
+  book_copy_id: uuid
+  created_at: timestamptz
+}
+
+class reviews {
+  {PK} id: uuid
+  user_id: uuid
+  {FK} isbn13: varchar(13)
+  rating: smallint
+  text: text
+  visibility: text
+  created_at: timestamptz
+}
+
+class notifications {
+  {PK} id: uuid
+  user_id: uuid
+  type: text
+  payload: jsonb
+  read_at: timestamptz
+  created_at: timestamptz
+}
+
+class audit_short_code_lookups {
+  {PK} id: bigserial
+  code: varchar(13)
+  outcome: text
+  hashed_ip: text
+  hashed_device: text
+  book_copy_id: uuid
+  created_at: timestamptz
+}
+
+class otp_events {
+  {PK} id: bigserial
+  {FK} loan_id: uuid
+  {FK} donation_id: uuid
+  actor_user_id: uuid
+  action: text
+  outcome: text
+  created_at: timestamptz
+}
+
+class message_edits {
+  {PK} id: bigserial
+  {FK} message_id: uuid
+  body: text
+  edited_at: timestamptz
+}
+
+class donations {
+  {PK} id: uuid
+  {FK} book_copy_id: uuid
+  donor_user_id: uuid
+  recipient_user_id: uuid
+  type: text
+  state: text
+  created_at: timestamptz
+  updated_at: timestamptz
+}
+
+class donation_interests {
+  {PK} id: uuid
+  {FK} donation_id: uuid
+  user_id: uuid
+  created_at: timestamptz
+}
+
+class donation_events {
+  {PK} id: uuid
+  {FK} donation_id: uuid
+  type: text
+  method: text
+  actor_user_id: uuid
+  metadata: jsonb
+  created_at: timestamptz
+}
+
+' Relationships
+edition_snapshots --> editions : isbn13
+book_copies --> editions : isbn13
+qr_labels --> book_copies : book_copy_id
+short_codes --> book_copies : book_copy_id
+loans --> book_copies : book_copy_id
+loan_events --> loans : loan_id
+messages --> threads : thread_id
+message_edits --> messages : message_id
+shelf_items --> shelves : shelf_id
+reviews --> editions : isbn13
+notifications -->[hidden] editions : (no direct FK)
+audit_short_code_lookups -->[hidden] book_copies : (optional link)
+otp_events --> loans : loan_id
+otp_events --> donations : donation_id
+donations --> book_copies : book_copy_id
+donation_interests --> donations : donation_id
+donation_events --> donations : donation_id
+
+@enduml

@@ -1,0 +1,202 @@
+---
+# Mermaid ER diagram for Community Library (MVP)
+---
+
+erDiagram
+    EDITIONS ||--o{ EDITION_SNAPSHOTS : has
+    EDITIONS ||--o{ BOOK_COPIES : has
+
+    BOOK_COPIES ||--o{ QR_LABELS : has
+    BOOK_COPIES ||--o{ SHORT_CODES : has
+
+    BOOK_COPIES ||--o{ LOANS : has
+    LOANS ||--o{ LOAN_EVENTS : has
+
+    BOOK_COPIES ||--o{ DONATIONS : has
+    DONATIONS ||--o{ DONATION_INTERESTS : has
+    DONATIONS ||--o{ DONATION_EVENTS : has
+
+    THREADS ||--o{ MESSAGES : has
+    MESSAGES ||--o{ MESSAGE_EDITS : has
+
+    SHELVES ||--o{ SHELF_ITEMS : contains
+    EDITIONS ||--o{ REVIEWS : receives
+
+    LOANS ||--o{ OTP_EVENTS : records
+    DONATIONS ||--o{ OTP_EVENTS : records
+
+    EDITIONS {
+        varchar isbn13 PK
+        text title
+        text[] authors
+        text publisher
+        date publish_date
+        int page_count
+        varchar language_code
+        text cover_url
+        text sourced_from
+        timestamptz created_at
+    }
+
+    EDITION_SNAPSHOTS {
+        uuid id PK
+        varchar isbn13 FK
+        jsonb fields
+        text source
+        timestamptz created_at
+    }
+
+    BOOK_COPIES {
+        uuid id PK
+        uuid owner_user_id
+        varchar isbn13 FK
+        text status
+        boolean shareable
+        timestamptz created_at
+    }
+
+    QR_LABELS {
+        uuid book_copy_id FK
+        int version
+        text kid
+        text signature
+        boolean active
+        timestamptz created_at
+    }
+
+    SHORT_CODES {
+        varchar code PK
+        uuid book_copy_id FK
+        int qr_version
+        char checksum
+        boolean active
+        timestamptz created_at
+    }
+
+    LOANS {
+        uuid id PK
+        uuid book_copy_id FK
+        uuid owner_user_id
+        uuid borrower_user_id
+        text state
+        timestamptz due_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    LOAN_EVENTS {
+        uuid id PK
+        uuid loan_id FK
+        text type
+        text method
+        uuid actor_user_id
+        jsonb metadata
+        timestamptz created_at
+    }
+
+    THREADS {
+        uuid id PK
+        uuid user_a_id
+        uuid user_b_id
+        timestamptz created_at
+    }
+
+    MESSAGES {
+        uuid id PK
+        uuid thread_id FK
+        uuid from_user_id
+        text body
+        timestamptz edited_at
+        boolean deleted_for_sender
+        boolean deleted_for_recipient
+        timestamptz read_at
+        timestamptz created_at
+    }
+
+    SHELVES {
+        uuid id PK
+        uuid user_id
+        text name
+        timestamptz created_at
+    }
+
+    SHELF_ITEMS {
+        uuid shelf_id FK
+        varchar isbn13
+        uuid book_copy_id
+        timestamptz created_at
+    }
+
+    REVIEWS {
+        uuid id PK
+        uuid user_id
+        varchar isbn13 FK
+        smallint rating
+        text text
+        text visibility
+        timestamptz created_at
+    }
+
+    NOTIFICATIONS {
+        uuid id PK
+        uuid user_id
+        text type
+        jsonb payload
+        timestamptz read_at
+        timestamptz created_at
+    }
+
+    AUDIT_SHORT_CODE_LOOKUPS {
+        bigserial id PK
+        varchar code
+        text outcome
+        text hashed_ip
+        text hashed_device
+        uuid book_copy_id
+        timestamptz created_at
+    }
+
+    OTP_EVENTS {
+        bigserial id PK
+        uuid loan_id FK
+        uuid donation_id FK
+        uuid actor_user_id
+        text action
+        text outcome
+        timestamptz created_at
+    }
+
+    DONATIONS {
+        uuid id PK
+        uuid book_copy_id FK
+        uuid donor_user_id
+        uuid recipient_user_id
+        text type
+        text state
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    DONATION_INTERESTS {
+        uuid id PK
+        uuid donation_id FK
+        uuid user_id
+        timestamptz created_at
+    }
+
+    DONATION_EVENTS {
+        uuid id PK
+        uuid donation_id FK
+        text type
+        text method
+        uuid actor_user_id
+        jsonb metadata
+        timestamptz created_at
+    }
+
+    MESSAGE_EDITS {
+        bigserial id PK
+        uuid message_id FK
+        text body
+        timestamptz edited_at
+    }
