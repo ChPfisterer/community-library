@@ -283,7 +283,7 @@ Community Library
 
 ## 7. Data models
 
-Simplified TypeScript interfaces for frontend/design context. Full schema: `docs/db-schema.md`.
+Simplified TypeScript interfaces for frontend/design context. Full schema: [`db-schema.md`](./db-schema.md).
 
 ```typescript
 // Edition
