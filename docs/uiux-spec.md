@@ -406,7 +406,7 @@ interface UserSummary {
 
 ## 8. API drafts
 
-Full endpoint table: `docs/api-endpoints.md`. The examples below show representative request/response pairs.
+Full endpoint table: `api-endpoints.md`. The examples below show representative request/response pairs.
 
 ### Import a book
 ```http
