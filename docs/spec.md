@@ -27,7 +27,7 @@ This document consolidates all agreed decisions for the MVP. It is the single so
 References
 - Database schema: `docs/db-schema.md`, ER: `docs/db-er.mmd`, UML: `docs/db-uml.puml`.
 - Endpoints mapping: `docs/api-endpoints.md`.
-- AI coding guardrails: `.github/copilot-instructions.md`.
+- AI coding guardrails: `.github/copilot-instructions.md` (all AI tools — Copilot, Claude Code, Claude.ai, Cursor, etc.); `CLAUDE.md` (Claude Code project memory and quick-start context).
 
 ## 3. Identity and auth
 - Canonical user identifier: Keycloak `sub`.
