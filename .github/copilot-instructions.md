@@ -30,7 +30,7 @@ Every transition must be logged in the corresponding `loan_events` / `donation_e
 
 ## API conventions
 
-- All errors: **RFC 7807 Problem Details** (`Content-Type: application/problem+json`). Fields: `type`, `title`, `status`, `detail`, `instance`, `error_code`. Validation errors add `field_errors[]`.
+- All errors: **RFC 7807 Problem Details** (`Content-Type: application/problem+json`). Fields: `type`, `title`, `status`, `detail`, `instance`, `error_code`. Validation errors add `field_errors` (array of per-field error objects).
 - State-changing operations (loan request/approve/confirm, donation confirm) require an **`Idempotency-Key`** header. TTL 24 h; replay returns the original response; conflicting replay returns 409.
 - Responses include **W3C `traceparent`** and **`x-request-id`**; logs must include `trace_id` / `span_id`.
 - 429 responses include `Retry-After` seconds.
