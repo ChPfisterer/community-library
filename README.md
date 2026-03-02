@@ -248,7 +248,7 @@ All design decisions live in `docs/`. The README is intentionally high-level.
 | Document | Contents |
 |---|---|
 | [`docs/spec.md`](docs/spec.md) | MVP technical specification — architecture, data model, API conventions, GDPR, security |
-| [`docs/uiux-spec.md`](docs/uiux-spec.md) | UI/UX specification — personas, screens, components, flows (complements `spec.md`) |
+| [`docs/uiux-spec.md`](docs/uiux-spec.md) | UI/UX specification — personas, screens, components, flows (complements [`docs/spec.md`](docs/spec.md)) |
 | [`docs/api-endpoints.md`](docs/api-endpoints.md) | Endpoint surface: methods, paths, auth, request/response shapes |
 | [`docs/db-schema.md`](docs/db-schema.md) | Database schema with columns, constraints, and indexes |
 | [`docs/db-er.mmd`](docs/db-er.mmd) | ER diagram (Mermaid) |
