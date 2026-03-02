@@ -1,0 +1,185 @@
+# Community Library — monorepo .gitignore
+# Stack: .NET 10 · Angular · Swift/SwiftUI · Podman/Docker Compose · PostgreSQL · Redis · Keycloak
+
+# ─── Operating System ────────────────────────────────────────────────────────
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ─── IDE / Editor ────────────────────────────────────────────────────────────
+
+# VS Code — personal settings and workspace state (*.code-workspace files are committed)
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# JetBrains Rider / IntelliJ
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# ─── .NET / C# ───────────────────────────────────────────────────────────────
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet artifacts (packages restored from feed, not committed)
+*.nupkg
+*.snupkg
+*.nupkg.metadata
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# User-specific settings
+*.rsuser
+
+# ASP.NET / secrets
+appsettings.local.json
+appsettings.*.local.json
+secrets.json
+
+# Test results and coverage
+TestResults/
+[Cc]overage/
+*.coverage
+*.coveragexml
+*.coveragejson
+lcov.info
+coverage.cobertura.xml
+
+# ─── Angular / Node.js ───────────────────────────────────────────────────────
+
+# Dependencies (never committed; restored via npm/pnpm install)
+node_modules/
+.pnpm-store/
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Build output
+web/dist/
+web/.angular/cache/
+
+# Angular-specific
+.angular/
+
+# npm / pnpm
+.npm/
+*.tgz
+
+# ─── Swift / Xcode / iOS ─────────────────────────────────────────────────────
+
+# Xcode build artifacts
+ios/DerivedData/
+ios/build/
+
+# Xcode user state (per-developer; never shared)
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+
+# Swift Package Manager build output
+ios/.build/
+ios/.swiftpm/xcode/
+
+# Fastlane (CI credentials and generated reports, not source config)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+# CocoaPods (not used, but guard if introduced)
+Pods/
+
+# ─── Containers / Compose ────────────────────────────────────────────────────
+
+# Local environment overrides (always start from .env.example)
+.env
+*.local.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Podman/Docker runtime data committed accidentally
+infra/compose/app/.env
+infra/compose/deps/.env
+infra/compose/observability/.env
+infra/compose/prod/.env
+
+# Keycloak exported realm data with secrets / session state
+infra/keycloak/data/
+
+# ─── Secrets & Certificates ──────────────────────────────────────────────────
+
+*.pem
+*.key
+*.pfx
+*.p12
+*.cer
+*.crt
+*.der
+
+# ─── Logs & Temporary files ──────────────────────────────────────────────────
+
+*.log
+logs/
+tmp/
+temp/
+.temp/
+
+# ─── Generated Code ──────────────────────────────────────────────────────────
+# Generated client SDKs are committed to avoid drift (see repo-organization.md).
+# List any auto-generated files that should NOT be committed here:
+
+# Angular codegen scratch output (if using a local generator that emits outside src/generated/)
+# web/.codegen-tmp/
+
+# ─── Observability / Grafana Stack ───────────────────────────────────────────
+
+# Local Grafana/Mimir/Loki/Tempo data volumes if bind-mounted to repo paths
+infra/compose/observability/data/
+infra/compose/observability/grafana-data/
+
+# ─── Miscellaneous ───────────────────────────────────────────────────────────
+
+# Backup files
+*.bak
+*.orig
+*.rej
+
+# Archives
+*.zip
+*.tar.gz
+
+# Local scripts with credentials or machine-specific paths
+tools/local/

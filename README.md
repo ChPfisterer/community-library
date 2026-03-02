@@ -237,168 +237,26 @@ podman compose -f infra/compose/prod/docker-compose.observability.yml down
 ```
 
 Notes
-- Use strong, unique passwords in .env (or Podman secrets). Don't commit secrets.
+- Use strong, unique passwords in `.env` (or Podman secrets). Never commit secrets — always start from `.env.example`.
 - Consider systemd units or a process supervisor for auto-start on reboot.
 - For multi-node HA or advanced rollouts, migrate to Kubernetes later.
 
-### Identity & Access
-- Identity Provider: Keycloak (self-registration enabled).
-- Login: username (unique nickname) OR email; email verification OFF in dev, ON in prod.
-- Roles: user, moderator, admin (policy-based authorization in API).
- - Username (nickname) policy (MVP):
- 	\- Length: 3–20 characters; case-insensitive uniqueness.
- 	\- Allowed: letters, numbers, underscore, dot. Regex: `^[A-Za-z0-9._]{3,20}$`.
- 	\- No spaces or other symbols. Separate optional display name can include spaces/emojis.
+## Technical reference
 
-### Platform & Stack
-- Backend: .NET 9 (C#) Modular Monolith with Clean Architecture (Api, Application, Domain, Infrastructure).
-- Web: Angular (mobile-first). iOS: native Swift/SwiftUI.
-- Data: PostgreSQL + Redis (rate limits, codes, pub/sub).
-- Containerization: Podman Compose split stacks:
-	- App stack: api, web
-	- Deps stack: keycloak, postgres, redis
-	- Observability stack: grafana, mimir, loki, tempo, alloy (Grafana Agent)
-- Networking: shared external networks `telemetry-net` (observability) and `comlib-app-net` (app/deps);
-	API, Web, and Keycloak are exposed to the host in dev.
+All design decisions live in `docs/`. The README is intentionally high-level.
 
-### Observability
-- OTLP traces/metrics/logs → Alloy → Tempo (traces), Mimir (metrics), Loki (logs); dashboards/alerts in Grafana.
-- .NET: OpenTelemetry for ASP.NET Core, HttpClient, EF Core, SignalR; Serilog with trace/span IDs.
-- Keycloak: /metrics scraped; logs to Loki; audit events enabled.
-- Retention (MVP): Traces 7d, Logs 14d, Metrics 30d. Head sampling \~10%; always sample errors and slow (\>500ms) requests.
-
-### Global Metadata & Catalog
-- Editions model only for MVP (keyed by ISBN-13). Work layer deferred.
-- Metadata sources: Open Library → Google Books → ISBNDb. Persist normalized snapshots and provenance.
-- Add books via: EAN-13/ISBN-13 scan, ISBN entry, manual. Offline “pending book” allowed; fetch metadata on next sync.
-
-### QR Labels, Short Codes, and Fallbacks
-- QR payload (static label):
-	- c: bookCopyId (opaque UUID)
-	- v: qrVersion (int)
-	- kid: keyId (optional; for secret rotation)
-	- s: signature = base64url(HMAC-SHA256(secret[kid], c + "." + v))
-- Short code: 12 chars (Crockford Base32) + 1 checksum (total 13), grouped 3-3-3-3 + checksum (e.g., ABC-DEF-GHI-JKL-X); rotates with qrVersion; can be printed OR handwritten in the book.
-- Short code is lookup-only (never authorizes transfers). Rate-limited and fully audited.
-- Handover/return defaults: dual QR scan; in-app fallback via one-time 6‑digit code (10 min expiry), no proximity requirement; all events logged (actors, method, timestamps, device info).
- - Short code input rules (MVP): display uppercase; user input is case-insensitive; hyphens optional; whitespace ignored; Crockford Base32 alphabet (digits 0–9 and letters A–Z excluding I, L, O, U).
-
-#### Short Code Storage (MVP)
-- Approach: stored mapping in DB for clarity and auditing.
-- Table (suggested): `short_codes(code pk, book_copy_id fk, qr_version int, checksum char(1), active bool, created_at timestamptz)`
-	- Constraints: `unique(code)`, `unique(book_copy_id, qr_version)`, `active` false for older versions on re-issue.
-	- Collision handling: if generated code collides, regenerate until unique (extremely rare with 12 Base32 + checksum).
-	- Rotation: re-issuing a label (qrVersion++) generates a new short code and marks prior mappings inactive.
-
-### Label Printing (MVP)
-- Label content: QR code + human-friendly short code text (grouped Base32 with checksum) + optional deep link.
-- Paper/templates: A4 and US Letter; Avery-compatible (e.g., A4 L4770, US 5160).
-- Size: standard address label (\~63.5×38.1 mm / 2.625×1 in).
-- Output: downloadable PDF sheets (multiple labels) and a single-label print option; include cut marks/margins.
-- Regeneration: re-issuing a label bumps qrVersion, regenerates the QR and rotates the short code.
-
-### Lending/Borrowing Lifecycle
-- States: requested → approved → handover\_pending → on\_loan → return\_pending → returned (closed).
-- Cancellations: canceled\_rejected, canceled\_expired (auto), canceled\_user.
-- Computed flags: due\_soon, overdue.
-- Dual-scan at handover and return; fallback via one-time code when QR isn’t possible.
-- Timers & reminders (in-app only for MVP; email deferred. When email is enabled later, respect quiet hours 22:00–07:00):
-	- Default loan duration: 4 weeks (owner may set custom due date at approval).
-	- Request auto-expire: 72h without owner action.
-	- Handover\_pending auto-expire: 24h (can re-initiate without re-approval).
-	- Due soon: T‑48h and T‑12h (borrower); Due at: immediate reminder.
-	- Overdue reminders: +3d, +7d, +14d (borrower); owner nudges at +7d, +14d.
-	- Mark as lost: allowed at 14d overdue (no compensation tracking in MVP).
-
-### Donations & Ownership Transfer (MVP)
-- Donation is a distinct flow (not a loan): owner marks a book copy as "Available to donate"; recipient accepts.
-- Eligibility: donations only to existing registered users (recipient must be logged in).
-- Confirmation: same dual-confirm pattern as loans
-	- Preferred: QR dual-scan
-	- Fallback: one-time 6‑digit code (10 min), no proximity requirement, fully audited
-- On confirmation: ownership of the bookCopy transfers to the recipient; transfer history is kept on the bookCopy.
-- Personal metadata does not transfer; recipient starts with a clean slate.
-
-### Messaging (MVP)
-- 1:1 text-only (max 2,000 chars). Delivery via SignalR; offline outbox retry.
-- Read receipts enabled (can be toggled later).
-- Edit: 2‑minute window with “edited” indicator; server keeps originals for abuse review.
-- Delete-for-me: anytime. Delete-for-both: within 2 minutes if unread (tombstone shown).
-- Block/report supported; content scanning deferred (manual reports only).
-- Retention: unlimited by default; logical deletes retained 30 days for abuse investigations.
-
-### Moderation (MVP)
-- User-level: block/report available in clients.
-- Backend: accept and store reports with basic metadata (reporter, target, reason, timestamps).
-- Admin enforcement: deferred (no moderator actions/UI in MVP). Reports are for later review.
-- Evidence retention: deleted/edited message originals retained up to 30 days, then purged.
-
-### Notifications (MVP)
-- Channels: In-app only. Email/SMS deferred.
-- Events covered: loan requested/approved/declined, handover pending, due soon, due, overdue (+3d/+7d/+14d), return confirmed, donation invitation/accepted.
-- Delivery semantics: queue-and-retry; deduplicate within 1h window if state already changed.
-
-### Metrics & Analytics (MVP)
-- Success metrics
-	- Activation: ≥3 books added by a new user within 7 days of signup.
-	- Core value: ≥1 completed loan per active user within 30 days.
-	- Retention: 7‑day rolling retention for users who added ≥1 book (any meaningful activity on days 2–7).
-- Minimal instrumentation (server-side)
-	- Events: user\_signed\_up, app\_open/session\_start, book\_added (isbn13), loan\_requested/approved/handover\_confirmed/return\_confirmed.
-	- IDs: user\_id (Keycloak sub), loan\_id, device\_platform; timestamps server-side.
-- Dashboards
-	- Activation funnel (signed\_up → added\_1 → added\_3), loans per user and completion rate, D1/D7 cohort chart.
-	- Implement in Grafana using counters/time series from API; upgrade to dedicated product analytics later if needed.
-
-### API Conventions (MVP)
-- Errors: RFC 7807 Problem Details (content-type: application/problem+json)
-	- Fields: type, title, status, detail, instance
-	- Extensions: error\_code (string), field\_errors[] for validation (field, message, code)
-	- 429 includes Retry-After seconds; 409 for illegal state transitions (e.g., handover without approval)
-	- Example (validation 400):
-	  {
-	```
-	"type": "https://docs.comlib/errors/validation",
-	"title": "Validation failed",
-	"status": 400,
-	"detail": "One or more fields are invalid.",
-	"field_errors": [{"field": "isbn13", "message": "Invalid checksum", "code": "isbn_checksum"}]
-	```
-	  }
-- Idempotency: send Idempotency-Key header for state-changing endpoints (loan request/approve/confirm, donation accept/confirm)
-	- Server stores request hash + result for 24h; replays return the original response
-	- Conflicting replay (different body with same key) returns 409 Problem
-- Correlation: responses include W3C traceparent and x-request-id; logs include trace\_id/span\_id for cross-system tracing
-
-### Search & Discovery (MVP)
-- Search fields: title, author, ISBN-13; optional owner nickname exact filter.
-- Filters: availability (available vs on-loan). Location: city/ZIP text filter (no GPS proximity).
-- Sorting: relevance (simple scoring), recently added.
-- Implementation: PostgreSQL (GIN/trigram ready), but fuzzy/typo tolerance deferred.
-- Privacy: only books explicitly marked shareable are discoverable; personal metadata never appears in global results.
-
-### Offline & Sync
-- Fully offline: view My Library (cached), capture scans, queue actions (pending book, handover/return intents), draft messages.
-- Server-required: state changes (handover/return) apply only after server confirmation.
-- Sync triggers: app resume, manual refresh, periodic while foregrounded (e.g., every 15 min).
-- Conflict policy: last-writer-wins for personal metadata; idempotency keys for loan events.
-- Local cache cap: \~50–100 MB with LRU eviction for old snapshots/images.
-
-### Privacy Defaults
-- Personal metadata (notes, ratings, reviews, shelves) is opt-in and private-by-default.
-- Sharing reviews is per-item opt-in; when shared, visible to community; can be changed later.
-
-### Barcode/Scanner Support (MVP)
-- iOS: AVFoundation live scanner.
-- Supported: QR (app labels), EAN‑13/ISBN‑13 (retail barcodes). Others deferred.
-
-### Rate Limits & Audit (MVP)
-- Short code lookup
-	- 5 attempts/min per IP/device; 50 attempts/day per device. Exponential backoff on failures.
-	- Per-code guard: lock a specific short code for 5 minutes after 10 consecutive failures from the same IP/device.
-	- Audit log: timestamp, outcome (hit/miss), hashed IP, hashed device fingerprint, and resolved bookCopyId if found.
-- One-time handover/return code (6 digits)
-	- Lifetime: 10 minutes; single-use; bound to loanId and direction (handover vs return).
-	- Generation: max 3 active codes per loan per hour; only loan participants can generate.
-	- Validation: 3 attempts/min per loan per device; hard lock for 5 minutes after 10 failures.
-	- Audit log: timestamp, actor userIds, method=otp, device info, outcome. All events logged.
+| Document | Contents |
+|---|---|
+| [`docs/spec.md`](docs/spec.md) | MVP technical specification — architecture, data model, API conventions, GDPR, security |
+| [`docs/uiux-spec.md`](docs/uiux-spec.md) | UI/UX specification — personas, screens, components, flows (complements `spec.md`) |
+| [`docs/api-endpoints.md`](docs/api-endpoints.md) | Endpoint surface: methods, paths, auth, request/response shapes |
+| [`docs/db-schema.md`](docs/db-schema.md) | Database schema with columns, constraints, and indexes |
+| [`docs/db-er.mmd`](docs/db-er.mmd) | ER diagram (Mermaid) |
+| [`docs/db-uml.puml`](docs/db-uml.puml) | UML diagram (PlantUML) |
+| [`docs/roadmap.md`](docs/roadmap.md) | Phased roadmap with small stories — pick one to contribute |
+| [`docs/project-tracking.md`](docs/project-tracking.md) | GitHub Project setup, issue templates, labels, DoD |
+| [`docs/repo-organization.md`](docs/repo-organization.md) | Monorepo layout, CI/CD blueprint, branching, CODEOWNERS |
+| [`docs/workspaces.md`](docs/workspaces.md) | VS Code workspace files and per-area dev setup |
+| [`docs/versions.md`](docs/versions.md) | Pinned container image versions and update policy |
+| [`docs/branch-protection.md`](docs/branch-protection.md) | Branch protection rules and merge strategy |
+| [`docs/OPEN_TOPICS.md`](docs/OPEN_TOPICS.md) | Design questions still under discussion |
