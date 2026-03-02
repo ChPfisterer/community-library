@@ -259,7 +259,7 @@ All design decisions live in `docs/`. The README is intentionally high-level.
 | [`docs/roadmap.md`](docs/roadmap.md) | Phased roadmap with small stories — pick one to contribute |
 | [`docs/project-tracking.md`](docs/project-tracking.md) | GitHub Project setup, issue templates, labels, DoD |
 | [`docs/repo-organization.md`](docs/repo-organization.md) | Monorepo layout, CI/CD blueprint, branching, CODEOWNERS |
-| [`docs/workspaces.md`](docs/workspaces.md) | VS Code workspace files and per-area dev setup |
+| [`docs/workspaces.md`](docs/workspaces.md) | Editor setup by area — VS Code workspaces (API/Web) and Xcode (iOS) |
 | [`docs/versions.md`](docs/versions.md) | Pinned container image versions and update policy |
 | [`docs/branch-protection.md`](docs/branch-protection.md) | Branch protection rules and merge strategy |
 | [`docs/OPEN_TOPICS.md`](docs/OPEN_TOPICS.md) | Design questions still under discussion |
