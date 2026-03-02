@@ -39,15 +39,15 @@ tools/        local dev scripts
 
 ## Context scoping with workspaces
 
-Open the matching `.code-workspace` file to focus Claude's context on one area:
+We plan to add VS Code `.code-workspace` files to help focus Claude's context on one area. These workspace files are **not yet committed** to the repo; the table below shows the intended names:
 
-| Working on | Open this workspace |
+| Working on | Planned workspace name (not yet available) |
 |---|---|
 | API (`.NET`) | `com-lib-api.code-workspace` |
 | Web (Angular) | `com-lib-web.code-workspace` |
 | iOS (SwiftUI) | `com-lib-ios.code-workspace` |
 
-Each workspace includes `docs/` and the relevant `schemas/openapi/` folder so contracts stay visible.
+Each planned workspace will include `docs/` and the relevant `schemas/openapi/` folder so contracts stay visible. Until these files exist, open the corresponding project folder directly (e.g. `api/`, `web/`, or `ios/`) when working with Claude.
 
 ## Local dev quickstart
 
