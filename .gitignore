@@ -170,6 +170,13 @@ temp/
 infra/compose/observability/data/
 infra/compose/observability/grafana-data/
 
+# ─── Claude Code ─────────────────────────────────────────────────────────────
+# Commit:  CLAUDE.md (project memory), .claude/settings.json (shared tool config)
+# Ignore:  personal permission overrides and local worktree state
+
+.claude/settings.local.json
+.claude/worktrees/
+
 # ─── Miscellaneous ───────────────────────────────────────────────────────────
 
 # Backup files

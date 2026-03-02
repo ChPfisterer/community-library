@@ -61,6 +61,7 @@ Coming soon. We’ll add previews as the MVP UI lands for Web and iOS.
 	- Endpoints ↔ tables: `docs/api-endpoints.md`
 	- DB schema & diagrams: `docs/db-schema.md`, `docs/db-er.mmd`, `docs/db-uml.puml`
 	- Repo & CI/CD: `docs/repo-organization.md`
+- AI coding guardrails: `.github/copilot-instructions.md` · Claude Code memory: `CLAUDE.md`
 
 ## Project status
 We’re building the MVP in the open. The spec is stable for MVP; code scaffolding is next. If you want to help bootstrap the API/Web/iOS shells or infra compose stacks, pick a Phase 0/1 story from `docs/roadmap.md` and say hello in a PR.
@@ -247,6 +248,8 @@ All design decisions live in `docs/`. The README is intentionally high-level.
 
 | Document | Contents |
 |---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Claude Code project memory — repo map, workspace guide, critical invariants |
+| [`.github/copilot-instructions.md`](.github/copilot-instructions.md) | AI coding guardrails for all tools (Copilot, Claude Code, Claude.ai, Cursor) |
 | [`docs/spec.md`](docs/spec.md) | MVP technical specification — architecture, data model, API conventions, GDPR, security |
 | [`docs/uiux-spec.md`](docs/uiux-spec.md) | UI/UX specification — personas, screens, components, flows (complements `spec.md`) |
 | [`docs/api-endpoints.md`](docs/api-endpoints.md) | Endpoint surface: methods, paths, auth, request/response shapes |

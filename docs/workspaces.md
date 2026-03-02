@@ -18,7 +18,8 @@ Use the provided workspace files to keep your editor and AI context focused on t
 
 ## Why this helps
 - Smaller, more relevant file graph in the editor speeds up search and indexing.
-- Copilot and code navigation prioritize open files and current workspace folders, reducing distraction.
+- **GitHub Copilot** and code navigation prioritize open files and current workspace folders, reducing distraction.
+- **Claude Code** uses the workspace root and open folders to scope its context window — opening `com-lib-api.code-workspace` means Claude focuses on `api/`, `schemas/openapi/`, and `docs/` rather than the entire monorepo.
 - Keeps monorepo benefits (atomic PRs, shared contracts) while limiting day-to-day noise.
 
 ## How to open
